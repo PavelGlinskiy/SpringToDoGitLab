@@ -7,6 +7,7 @@ import com.emobile.springtodo.exception.TodoNotFoundException;
 import com.emobile.springtodo.mapper.TodoMapper;
 import com.emobile.springtodo.repository.TodoRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
@@ -16,13 +17,20 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class TodoService {
     private final TodoRepository repository;
     private final TodoMapper mapper;
 
     @Cacheable(value = "todos")
     public List<TodoDTO> findAll() {
-        return mapper.toDTOs(repository.findAll());
+        try {
+            log.debug("Fetching all todos from database");
+            return mapper.toDTOs(repository.findAll());
+        } catch (Exception e) {
+            log.error("Error fetching todos", e);
+            throw e;
+        }
     }
 
     @Cacheable(value = "todo", key = "#id")
